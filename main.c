@@ -2,31 +2,31 @@
 #include <math.h>
 #include <stdlib.h>
 
-void getData(int *pDimension, float ***pA, float **pX, float **pB);
+void getData(int *pDimension, double ***pA, double **pX, double **pB);
 
-float **allocateMatrix(int dimension);
+double **allocateMatrix(int dimension);
 
-float *allocateVector(int dimension);
+double *allocateVector(int dimension);
 
 void logError(const char *string);
 
-void displayResult(int dimension, float **matrixA, float *vectorX, float *vectorB);
+void displayResult(int dimension, double **matrixA, double *vectorX, double *vectorB);
 
-void showVector(float *vector, int dimension);
+void showVector(double *vector, int dimension);
 
-void cholesky(int dimension, float **matrixA, float *vectorX, float *vectorB);
+void cholesky(int dimension, double **matrixA, double *vectorX, double *vectorB);
 
-void factorisation(int dimension, float **matrixA);
+void factorisation(int dimension, double **matrixA);
 
-void solveTriangleInf(int dimension, float **matrixA, float *vectorB);
+void solveTriangleInf(int dimension, double **matrixA, double *vectorB);
 
-void solveTriangleSup(int dimension, float **matrixA, float *vectorX, const float *vectorB);
+void solveTriangleSup(int dimension, double **matrixA, double *vectorX, const double *vectorB);
 
 int main() {
     printf("Trouver x par la methode de Cholesky\n");
     // Data
     int dimension;
-    float **A = NULL,       /// square matrix of the system
+    double **A = NULL,       /// square matrix of the system
         *b = NULL,          /// vector second member
         *x = NULL;          /// vector solution
 
@@ -43,17 +43,16 @@ int main() {
     return 0;
 }
 
-void cholesky(int dimension, float **matrixA, float *vectorX, float *vectorB) {
+void cholesky(int dimension, double **matrixA, double *vectorX, double *vectorB) {
     factorisation(dimension, matrixA);
     solveTriangleInf(dimension, matrixA, vectorB);
     solveTriangleSup(dimension, matrixA, vectorX, vectorB);
 }
 
-void solveTriangleSup(int dimension, float **matrixA, float *vectorX, const float *vectorB) {
-    float sum;
+void solveTriangleSup(int dimension, double **matrixA, double *vectorX, const double *vectorB) {
     int i, j;
     for (i = dimension - 1; i >= 0; --i) {
-        sum = 0;
+        double sum = 0;
         for (j = i + 1; j < dimension; ++j) {
             sum += matrixA[j][i] * vectorX[j];
         }
@@ -61,8 +60,8 @@ void solveTriangleSup(int dimension, float **matrixA, float *vectorX, const floa
     }
 }
 
-void solveTriangleInf(int dimension, float **matrixA, float *vectorB) {
-    float sum;
+void solveTriangleInf(int dimension, double **matrixA, double *vectorB) {
+    double sum;
     for (int i = 0; i < dimension; ++i) {
         sum = 0;
         for (int j = 0; j < i; ++j) {
@@ -72,8 +71,8 @@ void solveTriangleInf(int dimension, float **matrixA, float *vectorB) {
     }
 }
 
-void factorisation(int dimension, float **matrixA) {
-    float temp1, temp2;
+void factorisation(int dimension, double **matrixA) {
+    double temp1, temp2;
     int i, j, k;
 
     for (i = 0; i < dimension; ++i) {
@@ -88,11 +87,11 @@ void factorisation(int dimension, float **matrixA) {
             }
             matrixA[i][j] = ( matrixA[i][j] - temp1 ) / matrixA[j][j];
         }
-        matrixA[i][i] = sqrtf( matrixA[i][i] - temp2 );
+        matrixA[i][i] = sqrt( matrixA[i][i] - temp2 );
     }
 }
 
-void displayResult(int dimension, float **matrixA, float *vectorX, float *vectorB) {
+void displayResult(int dimension, double **matrixA, double *vectorX, double *vectorB) {
     printf("The matrix \n");
     for (int i = 0; i < dimension; ++i) {
         for (int j = 0; j < dimension; ++j)
@@ -107,13 +106,13 @@ void displayResult(int dimension, float **matrixA, float *vectorX, float *vector
     showVector(vectorX, dimension);
 }
 
-void showVector(float *vector, int dimension) {
+void showVector(double *vector, int dimension) {
     for (int i = 0; i < dimension; ++i) {
         printf("%g\n", vector[i]);
     }
 }
 
-void getData(int *pDimension, float ***pA, float **pX, float **pB) {
+void getData(int *pDimension, double ***pA, double **pX, double **pB) {
     /// open file if exists
     char filePath[] = "../data2.txt";                                // must begin with '../'
     FILE *file = NULL;
@@ -130,16 +129,16 @@ void getData(int *pDimension, float ***pA, float **pX, float **pB) {
         int dimension;                                              // load dimension from file
         fscanf(file, "%d", &dimension);
 
-        float **matrixA = allocateMatrix(dimension);                // load matrix A from file
+        double **matrixA = allocateMatrix(dimension);                // load matrix A from file
         for (int i = 0; i < dimension; ++i) {
             for (int j = 0; j < dimension; ++j)
-                fscanf(file, "%f", &matrixA[i][j]);
+                fscanf(file, "%lf", &matrixA[i][j]);
         }
 
-        float *vectorB = allocateVector(dimension),                // allocate vector b -- second member
+        double *vectorB = allocateVector(dimension),                // allocate vector b -- second member
         *vectorX = allocateVector(dimension);                  // allocate vector x -- solution
         for (int i = 0; i < dimension; ++i) {
-            fscanf(file, "%f", &vectorB[i]);
+            fscanf(file, "%lf", &vectorB[i]);
             vectorX[i] = 0;
         }
 
@@ -154,9 +153,9 @@ void getData(int *pDimension, float ***pA, float **pX, float **pB) {
     }
 }
 
-float **allocateMatrix(int dimension) {
-    float **A = NULL;
-    A = malloc(dimension * sizeof(float*));
+double **allocateMatrix(int dimension) {
+    double **A = NULL;
+    A = malloc(dimension * sizeof(double*));
     for (int i = 0; i < dimension; ++i) {
         A[i] = allocateVector(dimension);
     }
@@ -164,9 +163,9 @@ float **allocateMatrix(int dimension) {
     return A;
 }
 
-float *allocateVector(int dimension) {
-    float *vector = NULL;
-    vector = malloc(dimension * sizeof (float));
+double *allocateVector(int dimension) {
+    double *vector = NULL;
+    vector = malloc(dimension * sizeof (double));
     if (vector == NULL) logError("Cannot allocate vector!");
     return vector;
 }
