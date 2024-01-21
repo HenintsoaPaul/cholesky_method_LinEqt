@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include <stdlib.h>
 
 void getData(int *pDimension, float ***pA, float **pX, float **pB);
@@ -13,22 +14,82 @@ void displayResult(int dimension, float **matrixA, float *vectorX, float *vector
 
 void showVector(float *vector, int dimension);
 
+void cholesky(int dimension, float **matrixA, float *vectorX, float *vectorB);
+
+void factorisation(int dimension, float **matrixA);
+
+void solveTriangleInf(int dimension, float **matrixA, float *vectorB);
+
+void solveTriangleSup(int dimension, float **matrixA, float *vectorX, const float *vectorB);
+
 int main() {
     printf("Trouver x par la methode de Cholesky\n");
-    // Donnees
+    // Data
     int dimension;
-    float **A = NULL,       /// matrice carree du systeme
-        *b = NULL,          /// vecteur second membre
-        *x = NULL;          /// vecteur solution
+    float **A = NULL,       /// square matrix of the system
+        *b = NULL,          /// vector second member
+        *x = NULL;          /// vector solution
 
     getData(&dimension, &A, &x, &b);
+    displayResult(dimension, A, x, b);
+    printf("---\n");
 
-    // Traitement
+    // Process
+    cholesky(dimension, A, x, b);
 
     // Result
     displayResult(dimension, A, x, b);
 
     return 0;
+}
+
+void cholesky(int dimension, float **matrixA, float *vectorX, float *vectorB) {
+    factorisation(dimension, matrixA);
+    solveTriangleInf(dimension, matrixA, vectorB);
+    solveTriangleSup(dimension, matrixA, vectorX, vectorB);
+}
+
+void solveTriangleSup(int dimension, float **matrixA, float *vectorX, const float *vectorB) {
+    float sum;
+    int i, j;
+    for (i = dimension - 1; i >= 0; --i) {
+        sum = 0;
+        for (j = i + 1; j < dimension; ++j) {
+            sum += matrixA[j][i] * vectorX[j];
+        }
+        vectorX[i] = ( vectorB[i] - sum ) / matrixA[i][i];
+    }
+}
+
+void solveTriangleInf(int dimension, float **matrixA, float *vectorB) {
+    float sum;
+    for (int i = 0; i < dimension; ++i) {
+        sum = 0;
+        for (int j = 0; j < i; ++j) {
+            sum += matrixA[i][j] * vectorB[j];
+        }
+        vectorB[i] = ( vectorB[i] - sum ) / matrixA[i][i];
+    }
+}
+
+void factorisation(int dimension, float **matrixA) {
+    float temp1, temp2;
+    int i, j, k;
+
+    for (i = 0; i < dimension; ++i) {
+        temp1 = 0;
+
+        for (j = 0; j < i; ++j) {
+            temp2 = 0;
+
+            for (k = 0; k <= j; ++k) {
+                temp1 += matrixA[i][k] * matrixA[j][k];
+                temp2 += matrixA[i][k] * matrixA[i][k];
+            }
+            matrixA[i][j] = ( matrixA[i][j] - temp1 ) / matrixA[j][j];
+        }
+        matrixA[i][i] = sqrtf( matrixA[i][i] - temp2 );
+    }
 }
 
 void displayResult(int dimension, float **matrixA, float *vectorX, float *vectorB) {
@@ -54,7 +115,7 @@ void showVector(float *vector, int dimension) {
 
 void getData(int *pDimension, float ***pA, float **pX, float **pB) {
     /// open file if exists
-    char filePath[] = "../data.txt";                                // must begin with '../'
+    char filePath[] = "../data2.txt";                                // must begin with '../'
     FILE *file = NULL;
     file = fopen(filePath, "r");
 
